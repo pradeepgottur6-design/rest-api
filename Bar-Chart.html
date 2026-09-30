@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <h2>API Data Visualization (Notes)</h2>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Notes Bar Chart</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--content-color-primary);
+    padding: var(--spacing-m, 12px);
+  }
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--content-color-primary);
+  }
+  .caption {
+    font-size: 11px;
+    color: var(--content-color-secondary);
+    margin-bottom: 12px;
+  }
+  .chart-container {
+    position: relative;
+    width: 100%;
+    height: 260px;
+  }
+  .tooltip-custom {
+    background: var(--background-color-secondary, #fff);
+    border: 1px solid var(--border-color-default, #ccc);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: var(--content-color-primary);
+  }
+</style>
+</head>
+<body>
+<h3>Notes — Response Data</h3>
+<p class="caption">6 records from GET /notes &nbsp;|&nbsp; Status 200 OK</p>
+<div class="chart-container">
+  <canvas id="notesChart" role="img" aria-label="Bar chart showing notes by ID with their text labels"></canvas>
+</div>
+<script>
+  const rawData = [
+    {"id":1,"text":"Learn Node.js"},
+    {"id":2,"text":"Build REST API"},
+    {"id":1790755182454,"text":null},
+    {"id":1790755330690,"text":"Testing from Postman"},
+    {"id":1790755337173,"text":"Testing from Postman"},
+    {"id":1790755377745,"text":"Testing from Postman"}
+  ];
+
+  // Use short labels for display
+  const labels = rawData.map((d, i) => {
+    const idStr = String(d.id);
+    return idStr.length > 8 ? 'ID …' + idStr.slice(-5) : 'ID ' + idStr;
+  });
+
+  const fullLabels = rawData.map(d => String(d.id));
+  const texts = rawData.map(d => d.text || '(no text)');
+
+  // Bar values: use index+1 as a rank/count since all values are unique notes
+  const values = rawData.map((_, i) => i + 1);
+
+  const colorPalette = [
+    '#4E79A7','#F28E2B','#59A14F','#76B7B2','#EDC948','#B07AA1'
+  ];
+
+  const ctx = document.getElementById('notesChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Note Entry',
+        data: values,
+        backgroundColor: colorPalette,
+        borderColor: colorPalette.map(c => c + 'cc'),
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => {
+              const idx = items[0].dataIndex;
+              return 'ID: ' + fullLabels[idx];
+            },
+            label: (item) => {
+              const idx = item.dataIndex;
+              return 'Text: ' + texts[idx];
+            },
+            afterLabel: (item) => {
+              return 'Entry #' + item.raw;
+            }
+          },
+          backgroundColor: 'rgba(30,30,30,0.85)',
+          titleColor: '#fff',
+          bodyColor: '#ddd',
+          padding: 10,
+          cornerRadius: 6,
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: 'var(--content-color-secondary)',
+            font: { size: 11 }
+          },
+          grid: { display: false }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Entry Order',
+            color: 'var(--content-color-secondary)',
+            font: { size: 11 }
+          },
+          ticks: {
+            color: 'var(--content-color-secondary)',
+            stepSize: 1,
+            font: { size: 11 }
+          },
+          grid: {
+            color: 'rgba(128,128,128,0.15)'
+          },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>
